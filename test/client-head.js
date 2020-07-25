@@ -65,6 +65,22 @@ describe('cient#VueHead', function () {
     expect(window.document.getElementsByTagName('link')[0].getAttribute('href')).toBe('author')
     expect(window.document.getElementsByTagName('link')[0].getAttribute('rel')).toBe('author')
   })
+
+  it('should inject noscript style success', function () {
+    const app = new Vue({
+      render: h => h('div', { attrs: {id: 'app'} }),
+      head: {
+        noscript: {
+          style: [
+            {type: 'text/css', inner: 'body { background-color: #000; color: #fff }'}
+          ]
+        }
+      }
+    })
+
+    app.$mount()
+    expect(window.document.getElementsByTagName('noscript')[0].innerHTML).toBe('<style type="text/css">body { background-color: #000; color: #fff }</style>')
+  })
 })
 
 function getMetaByName (name, type = 'meta') {
