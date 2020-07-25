@@ -80,6 +80,7 @@
       Object.keys(obj).forEach(function (prop) {
         var sh = self.shorthand[prop] || prop
         if (sh.match(/(body|undo|replace)/g)) return
+        if (typeof obj[prop] === 'undefined') return
         if (sh === 'inner') {
           el.textContent = obj[prop]
           return
@@ -100,6 +101,29 @@
       var title = obj.inner + ' ' + (obj.separator || opt.separator) +
         ' ' +  (obj.complement || opt.complement)
       window.document.title = title.trim()
+    },
+
+    /**
+     * Add noscript Element
+     * @param  {Object} obj
+     * @param  {Boolean} update
+     */
+    noscript: function (obj, update) {
+      var self = this
+      if (!obj) return
+      var { undo, id, body } = obj
+      var inner = Object.keys(obj).reduce(function (acc, prop) {
+        var sh = self.shorthand[prop] || prop
+        if (sh === 'inner') return acc + obj[prop]
+        if (!sh.match(/(link|style|meta)/g)) return acc
+        if (typeof obj[prop] === 'undefined') return acc
+        return acc + obj[prop].map(function (obj) {
+          var el = window.document.createElement(prop)
+          el = self.prepareElement(obj, el)
+          return acc + el.outerHTML
+        }).join('')
+      }, '')
+      self.handle([{ undo, id, body, inner }], 'noscript', 'head', update)
     },
 
     /**
@@ -195,6 +219,14 @@
         var obj = (typeof prop === 'function') ? head[key].bind(self)() : head[key]
         if (key === 'title') {
           util[key](obj)
+          return
+        } else if (key === 'noscript') {
+          util[key](Object.keys(obj).reduce(function (acc, key) {
+            var prop = obj[key]
+            if (!prop) return acc
+            acc[key] = (typeof prop === 'function') ? obj[key].bind(self)() : obj[key]
+            return acc
+          }, {}), update)
           return
         }
         util.handle(obj, key, 'head', update)

@@ -77,6 +77,7 @@
       Object.keys(obj).forEach(prop => {
         let sh = (this.shorthand[prop] || prop)
         if (sh.match(/(body|undo|replace)/g)) return
+        if (typeof obj[prop] === 'undefined') return
         if (sh === 'inner') {
           el.textContent = obj[prop]
           return
@@ -96,6 +97,23 @@
       diffTitle.before = opt.complement
       let title = `${val.inner} ${val.separator || opt.separator} ${val.complement || opt.complement}`
       window.document.title = title.trim()
+    },
+
+    noscript (obj, update) {
+      if (!obj) return
+      let { undo, id, body } = obj
+      let inner = Object.keys(obj).reduce((acc, prop) => {
+        let sh = (this.shorthand[prop] || prop)
+        if (sh === 'inner') return `${acc}${obj[prop]}`
+        if (sh.match(/(body|undo|replace)/g)) return acc
+        if (typeof obj[prop] === 'undefined') return acc
+        return obj[prop].map(obj => {
+          let el = window.document.createElement(prop)
+          this.prepareElement(obj, el)
+          return el.outerHTML
+        }).join('')
+      }, '')
+      this.handle([{ undo, id, body, inner }], 'noscript', 'head', update)
     },
 
     update () {
@@ -176,6 +194,14 @@
         let obj = (typeof prop === 'function') ? head[key].bind(this)() : head[key]
         if (key === 'title') {
           util[key](obj)
+          return
+        } else if (key === 'noscript') {
+          util[key](Object.keys(obj).reduce((acc, key) => {
+            let prop = obj[key]
+            if (!prop) return acc
+            acc[key] = (typeof prop === 'function') ? obj[key].bind(this)() : obj[key]
+            return acc
+          }, {}), update)
           return
         }
         util.handle(obj, key, 'head', update)
