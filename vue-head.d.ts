@@ -89,6 +89,15 @@ interface StyleOptions extends ElementOptions {
   i?: string;
   inner?: string;
 }
+interface NoScriptOptions extends ElementOptions {
+  /** Shorthand of `inner` */
+  i?: string;
+  inner?: string;
+  /** Accepted elements for <noscript> in <head> */
+  meta?: MetaOptions[] | (() => MetaOptions[]);
+  link?: LinkOptions[] | (() => LinkOptions[]);
+  style?: StyleOptions[] | (() => StyleOptions[]);
+}
 declare module 'vue/types/options' {
   interface ComponentOptions<V extends Vue> {
     head?: {
@@ -98,6 +107,7 @@ declare module 'vue/types/options' {
       link?: LinkOptions[] | (() => LinkOptions[]);
       script?: ScriptOptions[] | (() => ScriptOptions[]);
       style?: StyleOptions[] | (() => StyleOptions[]);
+      noscript?: NoScriptOptions | (() => NoScriptOptions);
     };
   }
 }
